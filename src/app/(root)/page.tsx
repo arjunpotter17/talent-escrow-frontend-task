@@ -23,6 +23,7 @@ import "../styles/stars.css"; // Ensure you import the CSS for the stars
 import { CloseIcon } from "../components/CloseIcon/CloseIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import { transition } from "../constants/transition";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 
 interface TokenData {
   address: PublicKey;
@@ -60,6 +61,7 @@ const Home = () => {
   const [receiveAmount, setReceiveAmount] = useState(0);
   const [redeemEscrowAddress, setRedeemEscrowAddress] = useState("");
   const [escrowState, setEscrowState] = useState<any>(null);
+  const [blinkEscrowState, setBlinkEscrowState] = useState<any>(null);
   const [createData, setCreateData] = useState<CreateEscrow>();
   const [stars, setStars] = useState<JSX.Element[]>([]);
   const [createLoading, setCreateLoading] = useState(false);
@@ -69,14 +71,23 @@ const Home = () => {
   const [closeData, setCloseData] = useState<string>("");
   const [refundData, setRefundData] = useState<string>("");
   const [globalError, setGlobalError] = useState<string>("");
+  const [blinkLink, setBlinkLink] = useState<string>("");
 
   useEffect(() => {
     handleFetchMintAddresses();
   }, []);
 
   useEffect(() => {
-    setStars(generateStars(100)); // Generate stars once when component mounts
+    setStars(generateStars(100));
   }, []);
+
+  useEffect(() => {
+    if (blinkEscrowState) {
+      setBlinkLink(
+        `https:toekn.vercel.app/api/actions/withdraw?escrow=${createData?.escrow}&maker=${blinkEscrowState.maker}&mintA=${blinkEscrowState.mintA}&mintB=${blinkEscrowState.mintB}`
+      );
+    }
+  }, [blinkEscrowState]);
 
   const connectToPhantom = async () => {
     if ((window as any)?.solana) {
@@ -216,7 +227,10 @@ const Home = () => {
     setSelectedToken(token || null);
   };
 
-  const handleFetchEscrowState = async (address: string) => {
+  const handleFetchEscrowState = async (
+    address: string,
+    forBlink?: boolean
+  ) => {
     setFetchLoading(true);
     try {
       const { provider } = await getProvider();
@@ -237,12 +251,17 @@ const Home = () => {
         const parsedInfo = vaultAccountInfo.value.data;
         tokenBalance = parsedInfo.parsed.info.tokenAmount.uiAmount;
       }
-
-      setEscrowState({
-        ...escrowAccount,
-        vaultAddress: vault.toBase58(),
-        tokenBalance,
-      });
+      forBlink
+        ? setBlinkEscrowState({
+            ...escrowAccount,
+            vaultAddress: vault.toBase58(),
+            tokenBalance,
+          })
+        : setEscrowState({
+            ...escrowAccount,
+            vaultAddress: vault.toBase58(),
+            tokenBalance,
+          });
     } catch (error: any) {
       console.error("Error fetching escrow state:", error);
       setGlobalError(`Error fetching escrow state: ${error.message}`);
@@ -251,17 +270,16 @@ const Home = () => {
     }
   };
 
-  const handleWithdraw = async () => {
+  const handleWithdraw = async (blink?: boolean, address?: string) => {
     setWithdrawLoading(true);
     try {
       const refundTx = await takeEscrow(
-        new PublicKey(redeemEscrowAddress),
+        new PublicKey(address ? address : redeemEscrowAddress),
         escrowState.mintA,
         escrowState.mintB,
         escrowState.maker
       );
-
-      if (refundTx) setRefundData(refundTx);
+      if (refundTx) setRefundData(refundTx as any as string);
     } catch (e: any) {
       console.error("Error refunding escrow:", e);
       setGlobalError(`Error refunding escrow: ${e.message}`);
@@ -282,6 +300,10 @@ const Home = () => {
     }),
   };
 
+  const handleCopy = () => {
+    alert("Link copied to clipboard!");
+  };
+
   return stars ? (
     <main className="flex flex-col gap-y-10 min-h-screen items-center justify-center p-6 bg-black relative overflow-hidden">
       <motion.div
@@ -299,7 +321,7 @@ const Home = () => {
           animate="visible"
           variants={containerVariants}
           custom={1}
-          className="text-toekn-orange text-toekn-banner-header-mobile ct-md:text-toekn-banner-header font-toekn-light z-10"
+          className="text-toekn-orange text-toekn-banner-header font-toekn-light z-10"
         >
           Toekn.
         </motion.p>
@@ -341,9 +363,9 @@ const Home = () => {
         custom={3}
         className="relative w-full max-w-4xl shadow-lg rounded-lg overflow-hidden min-h-[450px] font-toekn-regular bg-transparent border border-toekn-white z-10"
       >
-        <div className="flex justify-around p-4 border-b border-toekn-white">
+        <div className="flex justify-around gap-x-2 ct-md:gap-x-0 p-4 border-b border-toekn-white">
           <button
-            className={`px-4 py-2 hover:bg-toekn-orange hover:text-white hover:border-toekn-orange ${transition} ${
+            className={`px-4 py-2 hover:bg-toekn-orange hover:text-white hover:border-toekn-orange text-toekn-subtitle-mobile ct-md:text-toekn-subtitle ${transition} ${
               activeTab === "Make"
                 ? "bg-toekn-orange text-white"
                 : "border border-toekn-white text-toekn-white"
@@ -353,7 +375,7 @@ const Home = () => {
             Create Escrow
           </button>
           <button
-            className={`px-4 py-2 hover:bg-toekn-orange hover:text-white hover:border-toekn-orange ${transition} ${
+            className={`px-4 py-2 hover:bg-toekn-orange hover:text-white hover:border-toekn-orange text-toekn-subtitle-mobile ct-md:text-toekn-subtitle ${transition} ${
               activeTab === "Receive"
                 ? "bg-toekn-orange text-white"
                 : "border border-toekn-white text-toekn-white"
@@ -363,7 +385,7 @@ const Home = () => {
             Redeem Escrow
           </button>
           <button
-            className={`px-4 py-2 hover:bg-toekn-orange hover:text-white hover:border-toekn-orange ${transition} ${
+            className={`px-4 py-2 hover:bg-toekn-orange hover:text-white hover:border-toekn-orange text-toekn-subtitle-mobile ct-md:text-toekn-subtitle ${transition} ${
               activeTab === "Close"
                 ? "bg-toekn-orange text-white"
                 : "border border-toekn-white text-toekn-white"
@@ -401,7 +423,10 @@ const Home = () => {
                     className="flex flex-col border border-toekn-white mt-5 p-3"
                   >
                     <button
-                      onClick={() => setCreateData(undefined)}
+                      onClick={() => {
+                        setCreateData(undefined);
+                        setBlinkEscrowState(undefined);
+                      }}
                       className="self-end cursor-pointer"
                     >
                       <CloseIcon size="25" color="#A04000" />
@@ -428,9 +453,33 @@ const Home = () => {
                       <p className="mt-2">
                         Escrow Address:{" "}
                         <span className="text-toekn-orange">
-                          {createData?.escrow as any as string}
+                          {createData?.escrow}
                         </span>
                       </p>
+                      {!blinkLink ? (
+                        <button
+                          onClick={async () => {
+                            await handleFetchEscrowState(
+                              createData?.escrow as string,
+                              true
+                            );
+                          }}
+                          className="px-4 py-2 bg-toekn-orange hover:bg-toekn-dark-orange hover:text-white hover:border-toekn-orange mt-2"
+                        >
+                          Blink
+                        </button>
+                      ) : (
+                        <div className="mt-2">
+                          <div className="text-toekn-orange text-base font-toekn-regular text-justify">
+                            {blinkLink.slice(0, 50)}...
+                          </div>
+                          <CopyToClipboard text={blinkLink} onCopy={handleCopy}>
+                            <button className="px-2 py-1 bg-toekn-orange hover:bg-toekn-dark-orange hover:text-white hover:border-toekn-orange mt-2">
+                              Copy Full Link
+                            </button>
+                          </CopyToClipboard>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}

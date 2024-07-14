@@ -1,0 +1,39 @@
+/* stars.css */
+
+@keyframes twinkling {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+  }
+  
+  @keyframes move {
+    0% {
+      transform: translate(0, 0);
+    }
+    100% {
+      transform: translate(var(--translate-x), var(--translate-y));
+    }
+  }
+  
+  .stars {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+  
+  .star {
+    width: 2px;
+    height: 2px;
+    background: white;
+    position: absolute;
+    animation: twinkling 1.5s infinite ease-in-out alternate,
+               move 30s linear infinite;
+    --translate-x: calc(var(--random-x) * 100vw);
+    --translate-y: calc(var(--random-y) * 100vh);
+  }
+  

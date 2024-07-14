@@ -1,7 +1,7 @@
-# This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Toekn.
 
 ## Overview
-This project, deployed on [Vercel](https://vercel.com), interacts with an Anchor smart contract deployed to the Solana devnet at address [7gW2yGMScBLiHhGPmFxjb83Vay6DrAtuP1BjjUct85ZX](https://explorer.solana.com/address/7gW2yGMScBLiHhGPmFxjb83Vay6DrAtuP1BjjUct85ZX?cluster=devnet). It was created for the Solana Talent Olympics.
+Toekn. is a peer to peer spl token swap system. This project, deployed on [Vercel](https://toekn.vercel.com), interacts with an Anchor smart contract deployed to the Solana devnet at address [7gW2yGMScBLiHhGPmFxjb83Vay6DrAtuP1BjjUct85ZX](https://explorer.solana.com/address/7gW2yGMScBLiHhGPmFxjb83Vay6DrAtuP1BjjUct85ZX?cluster=devnet). It was created as an entry for the Solana Talent Olympics.
 
 ### Features
 - **Automatic Wallet Detection**: Integrated with automatic Phantom wallet detection on start instead of a wallet link button.
@@ -17,8 +17,6 @@ This project, deployed on [Vercel](https://vercel.com), interacts with an Anchor
    # or
    yarn dev
    Open http://localhost:3000 with your browser to see the result
-
-Project can be found at https://toekn.vercel.app
 
 
 

@@ -84,7 +84,7 @@ const Home = () => {
   useEffect(() => {
     if (blinkEscrowState) {
       setBlinkLink(
-        `https:toekn.vercel.app/api/actions/withdraw?escrow=${createData?.escrow}&maker=${blinkEscrowState.maker}&mintA=${blinkEscrowState.mintA}&mintB=${blinkEscrowState.mintB}`
+        `https://toekn.vercel.app/api/actions/withdraw?escrow=${createData?.escrow}&maker=${blinkEscrowState.maker}&mintA=${blinkEscrowState.mintA}&mintB=${blinkEscrowState.mintB}`
       );
     }
   }, [blinkEscrowState]);

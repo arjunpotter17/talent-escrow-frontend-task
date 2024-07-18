@@ -22,7 +22,7 @@ import {
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 
 const DEFAULT_SOL_ADDRESS = "5o3x9hBMDeLe3LYw7PKnyGiBD7LhroMFxt4LS2eoydR1";
-const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+const connection = new Connection(clusterApiUrl("devnet"), "finalized");
 
 export async function GET(req: Request, res: Response) {
   const responseBody: ActionGetResponse = {
@@ -77,15 +77,6 @@ export async function POST(req: Request, res: Response) {
     TOKEN_PROGRAM_ID
   );
 
-
-  console.log(escrow.toBase58(), 'escrow');
-  console.log(vault.toBase58(), 'vault');
-  console.log(takerAtaA.toBase58(), 'takerAtaA');
-  console.log(takerAtaB.toBase58(), 'takerAtaB');
-  console.log(makerAtaB.toBase58(), 'makerAtaB');
-  console.log(mintA.toBase58(), 'mintA');
-  console.log(mintB.toBase58(), 'mintB');
-  console.log(maker.toBase58(), 'maker');
   const tx = await program.methods
     .take()
     .accountsPartial({
@@ -114,7 +105,7 @@ export async function POST(req: Request, res: Response) {
 
   const responseBody: ActionPostResponse = {
     transaction: serialTx,
-    message: "Trade accepted.",
+    message: "Trade Completed.",
   };
 
   const response = Response.json(responseBody, {

@@ -24,6 +24,7 @@ import { CloseIcon } from "../components/CloseIcon/CloseIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import { transition } from "../constants/transition";
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import Footer from "../components/Footer/page";
 
 interface TokenData {
   address: PublicKey;
@@ -580,6 +581,15 @@ const Home = () => {
             </>
           )}
         </div>
+      </motion.div>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        custom={4}
+        className="w-full absolute bottom-0 z-10"
+      >
+        <Footer />
       </motion.div>
     </main>
   ) : (

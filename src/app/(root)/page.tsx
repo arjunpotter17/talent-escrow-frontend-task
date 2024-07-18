@@ -362,7 +362,7 @@ const Home = () => {
         animate="visible"
         variants={containerVariants}
         custom={3}
-        className="relative w-full max-w-4xl shadow-lg rounded-lg overflow-hidden min-h-[450px] font-toekn-regular bg-transparent border border-toekn-white z-10"
+        className="relative w-full max-w-4xl shadow-lg rounded-lg overflow-hidden min-h-[450px] font-toekn-regular bg-transparent border border-toekn-white z-10 mb-[75px]"
       >
         <div className="flex justify-around gap-x-2 ct-md:gap-x-0 p-4 border-b border-toekn-white">
           <button

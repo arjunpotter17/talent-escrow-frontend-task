@@ -1,4 +1,4 @@
-import { AnchorProvider, BN, Program } from "@coral-xyz/anchor";
+import { BN, Program } from "@coral-xyz/anchor";
 import { IDL, Escrow } from "./idl";
 import {
   clusterApiUrl,
@@ -11,42 +11,30 @@ import {
   TOKEN_PROGRAM_ID,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
+import { WalletContextState } from "@solana/wallet-adapter-react";
 
+//common constants
 const programId = new PublicKey("7gW2yGMScBLiHhGPmFxjb83Vay6DrAtuP1BjjUct85ZX");
 const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-
-interface Window {
-  solana?: any;
-}
-
-
+const program = new Program<Escrow>(IDL, { connection });
 const tokenProgram = TOKEN_PROGRAM_ID;
 
-export const getProvider = async () => {
-  if ((window as Window & typeof globalThis).solana) {
-    await (window as Window & typeof globalThis).solana.connect();
-    const wallet = (window as Window & typeof globalThis).solana;
-    const provider = new AnchorProvider(connection, wallet, {
-      preflightCommitment: "finalized",
-    });
-    return { provider, wallet };
-  } else {
-    throw new Error("Phantom wallet not found");
-  }
-};
-
-
+//function to create escrow
 export const createEscrow = async (
   initMint: PublicKey,
   mintB: PublicKey,
   seed: BN,
   amount: number,
-  receive: number
-
+  receive: number,
+  wallet: WalletContextState
 ) => {
-  const { provider, wallet } = await getProvider();
   const maker = wallet.publicKey;
-  const program = new Program<Escrow>(IDL, provider);
+  if (!maker) return;
+
+  if (!wallet.signTransaction) {
+    console.error("Wallet does not support signing transactions");
+    return;
+  }
   const makerAtaA = getAssociatedTokenAddressSync(initMint, maker, false);
 
   const escrow = PublicKey.findProgramAddressSync(
@@ -80,37 +68,43 @@ export const createEscrow = async (
       })
       .transaction();
 
-    const { blockhash } = await provider.connection.getRecentBlockhash();
+    const blockhash = (await connection.getLatestBlockhash()).blockhash;
     tx.recentBlockhash = blockhash;
     tx.feePayer = maker;
 
     const signedInitTx = await wallet.signTransaction(tx);
-    const txId = await provider.connection.sendRawTransaction(
-      signedInitTx.serialize(),
-      { skipPreflight: false, preflightCommitment: "finalized" }
-    );
+    const txId = await connection.sendRawTransaction(signedInitTx.serialize(), {
+      skipPreflight: false,
+      preflightCommitment: "finalized",
+    });
 
     console.log("Transaction signature for make:", txId);
     return {
       txId,
-      escrow:escrow.toBase58(),
-    }
+      escrow: escrow.toBase58(),
+    };
   } catch (error) {
     console.error("Error creating escrow:", error);
   }
 };
 
+//function to refund escrow
 export const refundEscrow = async (
   escrowAddress: PublicKey,
   mintA: PublicKey,
   makerAtaA: PublicKey,
-  seed: BN
+  seed: BN,
+  wallet: WalletContextState
 ) => {
-  const { provider, wallet } = await getProvider();
   const maker = wallet.publicKey;
-  const program = new Program<Escrow>(IDL, provider);
+  if (!maker) return;
 
-  const [escrow, bump] = await PublicKey.findProgramAddress(
+  if (!wallet.signTransaction) {
+    console.error("Wallet does not support signing transactions");
+    return;
+  }
+
+  const [escrow] = PublicKey.findProgramAddressSync(
     [
       Buffer.from("escrow"),
       maker.toBuffer(),
@@ -141,15 +135,15 @@ export const refundEscrow = async (
       })
       .transaction();
 
-    const { blockhash } = await provider.connection.getRecentBlockhash();
+    const blockhash = (await connection.getLatestBlockhash()).blockhash;
     tx.recentBlockhash = blockhash;
     tx.feePayer = maker;
 
     const signedInitTx = await wallet.signTransaction(tx);
-    const txId = await provider.connection.sendRawTransaction(
-      signedInitTx.serialize(),
-      { skipPreflight: false, preflightCommitment: "processed" }
-    );
+    const txId = await connection.sendRawTransaction(signedInitTx.serialize(), {
+      skipPreflight: false,
+      preflightCommitment: "processed",
+    });
 
     console.log("Transaction signature for refund:", txId);
     return txId;
@@ -158,15 +152,21 @@ export const refundEscrow = async (
   }
 };
 
+//function to take from escrow
 export const takeEscrow = async (
   escrowAddress: PublicKey,
   mintA: PublicKey,
   mintB: PublicKey,
   maker: PublicKey,
+  wallet: WalletContextState
 ) => {
-  const { provider, wallet } = await getProvider();//
-  const taker = wallet.publicKey;//
-  const program = new Program<Escrow>(IDL, provider);//
+  const taker = wallet.publicKey;
+  if (!taker) return;
+
+  if (!wallet.signTransaction) {
+    console.error("Wallet does not support signing transactions");
+    return;
+  }
 
   const vault = getAssociatedTokenAddressSync(
     mintA,
@@ -205,7 +205,7 @@ export const takeEscrow = async (
         takerAtaA: takerAtaA,
         takerAtaB: takerAtaB,
         makerAtaB: makerAtaB,
-        escrow:escrowAddress,
+        escrow: escrowAddress,
         vault,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -213,18 +213,18 @@ export const takeEscrow = async (
       })
       .transaction();
 
-    const blockhash = (await provider.connection.getLatestBlockhash()).blockhash;
+    const blockhash = (await connection.getLatestBlockhash()).blockhash;
     tx.recentBlockhash = blockhash;
     tx.feePayer = taker;
     const signedTx = await wallet.signTransaction(tx);
-    console.log(signedTx, 'trans')
-    const txId = await provider.connection.sendRawTransaction(
-      signedTx.serialize(),
-      { skipPreflight: false, preflightCommitment: "processed" }
-    );
+    console.log(signedTx, "trans");
+    const txId = await connection.sendRawTransaction(signedTx.serialize(), {
+      skipPreflight: false,
+      preflightCommitment: "processed",
+    });
 
     console.log("Transaction signature for take:", txId);
-    return txId
+    return txId;
   } catch (error) {
     console.error("Error taking escrow:", error);
   }

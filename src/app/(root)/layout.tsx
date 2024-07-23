@@ -1,6 +1,6 @@
 "use client";
 import "../globals.css";
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { clusterApiUrl } from "@solana/web3.js";
 import {
   WalletProvider,

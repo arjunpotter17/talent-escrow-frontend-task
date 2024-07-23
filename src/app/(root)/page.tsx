@@ -8,23 +8,20 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { TokenListProvider, TokenInfo } from "@solana/spl-token-registry";
-import {
-  createEscrow,
-  refundEscrow,
-  takeEscrow,
-  getProvider,
-} from "../solana/solana";
-import { IDL } from "../solana/idl";
+import { createEscrow, refundEscrow, takeEscrow } from "../solana/solana";
+import { Escrow, IDL } from "../solana/idl";
 import { randomBytes } from "crypto";
 import CreateEscrowForm from "../components/CreateEscrowForm";
 import RedeemEscrowForm from "../components/RedeemEscrowForm";
 import CloseEscrowForm from "../components/CloseEscrowForm";
-import "../styles/stars.css"; // Ensure you import the CSS for the stars
+import "../styles/stars.css";
 import { CloseIcon } from "../components/CloseIcon/CloseIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import { transition } from "../constants/transition";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import Footer from "../components/Footer/page";
+import { useWallet } from "@solana/wallet-adapter-react";
+import Navbar from "../components/AppBar/page";
 
 interface TokenData {
   address: PublicKey;
@@ -36,6 +33,7 @@ interface CreateEscrow {
   escrow: string;
 }
 
+//function to generate stars background
 const generateStars = (numStars: number) => {
   const stars = [];
   for (let i = 0; i < numStars; i++) {
@@ -52,36 +50,59 @@ const generateStars = (numStars: number) => {
 };
 
 const Home = () => {
+  //hooks
+  const wallet = useWallet();
+
+  //consts
   const tokenProgram = TOKEN_PROGRAM_ID;
-  const [activeTab, setActiveTab] = useState("Make");
-  const [closeEscrowAddress, setCloseEscrowAddress] = useState("");
+  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+  const program = new Program<Escrow>(IDL, { connection });
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: (i: number) => ({
+      opacity: 1,
+      transition: {
+        delay: i * 0.1,
+      },
+    }),
+  };
+  const handleCopy = () => {
+    alert("Link copied to clipboard!");
+  };
+
+  //states
+  const [activeTab, setActiveTab] = useState<string>("Make");
+  const [closeEscrowAddress, setCloseEscrowAddress] = useState<string>("");
   const [tokens, setTokens] = useState<TokenData[]>([]);
   const [selectedToken, setSelectedToken] = useState<TokenData | null>(null);
-  const [amountToSend, setAmountToSend] = useState(1);
-  const [receiveMintAddress, setReceiveMintAddress] = useState("");
-  const [receiveAmount, setReceiveAmount] = useState(0);
-  const [redeemEscrowAddress, setRedeemEscrowAddress] = useState("");
+  const [amountToSend, setAmountToSend] = useState<number>(1);
+  const [receiveMintAddress, setReceiveMintAddress] = useState<string>("");
+  const [receiveAmount, setReceiveAmount] = useState<number>(0);
+  const [redeemEscrowAddress, setRedeemEscrowAddress] = useState<string>("");
   const [escrowState, setEscrowState] = useState<any>(null);
   const [blinkEscrowState, setBlinkEscrowState] = useState<any>(null);
   const [createData, setCreateData] = useState<CreateEscrow>();
   const [stars, setStars] = useState<JSX.Element[]>([]);
-  const [createLoading, setCreateLoading] = useState(false);
-  const [closeLoading, setCloseLoading] = useState(false);
-  const [withdrawLoading, setWithdrawLoading] = useState(false);
-  const [fetchLoading, setFetchLoading] = useState(false);
+  const [createLoading, setCreateLoading] = useState<boolean>(false);
+  const [closeLoading, setCloseLoading] = useState<boolean>(false);
+  const [withdrawLoading, setWithdrawLoading] = useState<boolean>(false);
+  const [fetchLoading, setFetchLoading] = useState<boolean>(false);
   const [closeData, setCloseData] = useState<string>("");
   const [refundData, setRefundData] = useState<string>("");
   const [globalError, setGlobalError] = useState<string>("");
   const [blinkLink, setBlinkLink] = useState<string>("");
 
+  //effect to fetch mint addresses on wallet connect
   useEffect(() => {
-    handleFetchMintAddresses();
-  }, []);
+    if (wallet.publicKey) handleFetchMintAddresses();
+  }, [wallet]);
 
+  //effect to set bg
   useEffect(() => {
     setStars(generateStars(100));
   }, []);
 
+  //effect to set blink
   useEffect(() => {
     if (blinkEscrowState) {
       setBlinkLink(
@@ -90,25 +111,18 @@ const Home = () => {
     }
   }, [blinkEscrowState]);
 
-  const connectToPhantom = async () => {
-    if ((window as any)?.solana) {
-      await (window as any).solana.connect();
-    } else {
-      throw new Error("Phantom wallet not found");
-    }
-  };
-
+  //function to create escrow
   const handleCreateEscrow = async () => {
+    if (!wallet.publicKey) setGlobalError("Please connect your wallet");
     setCreateLoading(true);
+
     try {
-      await connectToPhantom();
       if (!selectedToken) throw new Error("No token selected");
       const initMint = selectedToken.address;
       const mintB = new PublicKey(receiveMintAddress);
-      const seed = new BN(randomBytes(8)); // Example seed
-      const { provider } = await getProvider();
-      const mintInfoA = await getMint(provider.connection, initMint);
-      const mintInfoB = await getMint(provider.connection, mintB);
+      const seed = new BN(randomBytes(8));
+      const mintInfoA = await getMint(connection, initMint);
+      const mintInfoB = await getMint(connection, mintB);
 
       const decimalsA = mintInfoA.decimals;
       const decimalsB = mintInfoB.decimals;
@@ -121,7 +135,8 @@ const Home = () => {
         mintB,
         seed,
         scaledAmount,
-        scaledReceiveAmount
+        scaledReceiveAmount,
+        wallet
       );
 
       if (data) {
@@ -139,35 +154,42 @@ const Home = () => {
     }
   };
 
+  //function to close escrow
   const handleCloseEscrow = async () => {
+    if (!wallet.publicKey) setGlobalError("Please connect your wallet");
     setCloseLoading(true);
     try {
-      console.log(closeEscrowAddress, "this");
       if (!closeEscrowAddress) throw new Error("No escrow address provided");
-      const data = await handleFetchEscrowState(closeEscrowAddress);
+      const data = await handleFetchEscrowState(
+        closeEscrowAddress,
+        false,
+        true
+      );
+      if (!data) return;
       const makerAtaA = getAssociatedTokenAddressSync(
-        escrowState.mintA,
-        escrowState.maker,
+        data.mintA,
+        data.maker,
         false,
         tokenProgram
       );
-      await connectToPhantom();
       const closeTxId = await refundEscrow(
         new PublicKey(closeEscrowAddress),
-        escrowState.mintA,
+        data.mintA,
         makerAtaA,
-        escrowState.seed
+        data.seed,
+        wallet
       );
       if (closeTxId) setCloseData(closeTxId);
     } catch (error: any) {
       console.error("Error closing escrow:", error);
-      setGlobalError(`Error creating escrow: ${error.message}`);
+      setGlobalError(`Error closing escrow: ${error.message}`);
     } finally {
       setCloseLoading(false);
       setCloseEscrowAddress("");
     }
   };
 
+  //function to get mint addresses
   const getMintAddresses = async (
     connection: Connection,
     walletPublicKey: PublicKey
@@ -186,6 +208,7 @@ const Home = () => {
     }
   };
 
+  //function to fetch token metadata and display name instead of addresses
   const fetchTokenMetadata = async (mints: PublicKey[]) => {
     const tokenList = await new TokenListProvider().resolve();
     const tokenMap = tokenList.getList().reduce((map, token) => {
@@ -204,22 +227,19 @@ const Home = () => {
     setTokens(tokensData);
   };
 
+  //function to fetch mint addresses
   const handleFetchMintAddresses = async () => {
-    try {
-      await connectToPhantom();
-      const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-      const walletPublicKey = (window as any)?.solana.publicKey;
-      const mintAddresses = await getMintAddresses(connection, walletPublicKey);
-      if (!mintAddresses) {
-        throw new Error("No mint addresses found");
-      }
-      await fetchTokenMetadata(mintAddresses);
-    } catch (error: any) {
-      console.error("Error fetching mint addresses:", error);
-      setGlobalError(`Error fetching mint addresses: ${error.message}`);
+    if (!wallet.publicKey) setGlobalError("Please connect your wallet");
+    const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+    const walletPublicKey = (window as any)?.solana.publicKey;
+    const mintAddresses = await getMintAddresses(connection, walletPublicKey);
+    if (!mintAddresses) {
+      throw new Error("No mint addresses found");
     }
+    await fetchTokenMetadata(mintAddresses);
   };
 
+  //function to handle token change
   const handleTokenChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedAddress = e.target.value;
     const token = tokens.find(
@@ -228,23 +248,21 @@ const Home = () => {
     setSelectedToken(token || null);
   };
 
+  //function to fetch escrow state
   const handleFetchEscrowState = async (
     address: string,
-    forBlink?: boolean
+    forBlink?: boolean,
+    returns?: boolean
   ) => {
     setFetchLoading(true);
     try {
-      const { provider } = await getProvider();
-      const program = new Program(IDL, provider);
       const escrowAccount = await program.account.escrow.fetch(address);
-
       const vault = getAssociatedTokenAddressSync(
         escrowAccount.mintA,
         new PublicKey(address),
         true,
         TOKEN_PROGRAM_ID
       );
-      const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
       const vaultAccountInfo = await connection.getParsedAccountInfo(vault);
 
       let tokenBalance = 0;
@@ -252,6 +270,7 @@ const Home = () => {
         const parsedInfo = vaultAccountInfo.value.data;
         tokenBalance = parsedInfo.parsed.info.tokenAmount.uiAmount;
       }
+
       forBlink
         ? setBlinkEscrowState({
             ...escrowAccount,
@@ -263,6 +282,13 @@ const Home = () => {
             vaultAddress: vault.toBase58(),
             tokenBalance,
           });
+      return returns
+        ? {
+            ...escrowAccount,
+            vaultAddress: vault.toBase58(),
+            tokenBalance,
+          }
+        : null;
     } catch (error: any) {
       console.error("Error fetching escrow state:", error);
       setGlobalError(`Error fetching escrow state: ${error.message}`);
@@ -271,14 +297,17 @@ const Home = () => {
     }
   };
 
+  //function to handle withdraw from escrow
   const handleWithdraw = async (blink?: boolean, address?: string) => {
+    if (!wallet.publicKey) setGlobalError("Please connect your wallet");
     setWithdrawLoading(true);
     try {
       const refundTx = await takeEscrow(
         new PublicKey(address ? address : redeemEscrowAddress),
         escrowState.mintA,
         escrowState.mintB,
-        escrowState.maker
+        escrowState.maker,
+        wallet
       );
       if (refundTx) setRefundData(refundTx as any as string);
     } catch (e: any) {
@@ -287,26 +316,12 @@ const Home = () => {
     } finally {
       setWithdrawLoading(false);
       setRedeemEscrowAddress("");
-      setEscrowState("");
+      setEscrowState(null);
     }
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: (i: number) => ({
-      opacity: 1,
-      transition: {
-        delay: i * 0.1,
-      },
-    }),
-  };
-
-  const handleCopy = () => {
-    alert("Link copied to clipboard!");
-  };
-
   return stars ? (
-    <main className="flex flex-col gap-y-10 min-h-screen items-center justify-center p-6 bg-black relative overflow-hidden">
+    <main className="flex flex-col scroll-smooth gap-y-10 min-h-screen items-center justify-center p-6 bg-black relative overflow-hidden">
       <motion.div
         initial="hidden"
         animate="visible"
@@ -335,6 +350,9 @@ const Home = () => {
         >
           Peer to Peer SPL token swap was never easier!
         </motion.p>
+      </div>
+      <div className="relative w-full max-w-4xl z-50">
+        <Navbar />
       </div>
       <AnimatePresence>
         {globalError && (
@@ -371,7 +389,11 @@ const Home = () => {
                 ? "bg-toekn-orange text-white"
                 : "border border-toekn-white text-toekn-white"
             }`}
-            onClick={() => setActiveTab("Make")}
+            onClick={() => {
+              setActiveTab("Make");
+              setCreateData(undefined);
+              setBlinkEscrowState(undefined);
+            }}
           >
             Create Escrow
           </button>
@@ -381,7 +403,11 @@ const Home = () => {
                 ? "bg-toekn-orange text-white"
                 : "border border-toekn-white text-toekn-white"
             }`}
-            onClick={() => setActiveTab("Receive")}
+            onClick={() => {
+              setActiveTab("Receive");
+              setEscrowState(null);
+              setRefundData("");
+            }}
           >
             Redeem Escrow
           </button>
@@ -391,7 +417,10 @@ const Home = () => {
                 ? "bg-toekn-orange text-white"
                 : "border border-toekn-white text-toekn-white"
             }`}
-            onClick={() => setActiveTab("Close")}
+            onClick={() => {
+              setActiveTab("Close");
+              setCloseData("");
+            }}
           >
             Close Escrow
           </button>

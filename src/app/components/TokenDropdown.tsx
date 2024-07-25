@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { TokenData } from "../types";
 import "./dropdown.css";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 interface TokenDropdownProps {
   tokens: TokenData[];
@@ -14,6 +15,8 @@ const TokenDropdown: React.FC<TokenDropdownProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [selectedToken, setSelectedToken] = useState<TokenData | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const {publicKey} = useWallet();
 
   const handleSelect = (token: TokenData) => {
     setSelectedToken(token);
@@ -48,8 +51,11 @@ const TokenDropdown: React.FC<TokenDropdownProps> = ({
         Select Token
       </label>
       <div
-        className="shadow appearance-none rounded w-full py-2 px-3 text-token-white leading-tight focus:outline-none focus:shadow-outline border border-token-white bg-transparent cursor-pointer"
-        onClick={() => setIsOpen(!isOpen)}
+        className={`shadow appearance-none rounded w-full py-2 px-3 text-token-white leading-tight focus:outline-none focus:shadow-outline border border-token-white bg-transparent ${publicKey ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+        onClick={() => {
+          if (!publicKey) return;
+          setIsOpen(!isOpen);
+        }}
       >
         {selectedToken ? (
           <div className="flex items-center">

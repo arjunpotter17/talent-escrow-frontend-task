@@ -5,14 +5,16 @@ interface MintAddressFormProps {
   label: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
 }
 
-const MintAddressForm: React.FC<MintAddressFormProps> = ({ id, label, value, onChange }) => (
+const MintAddressForm: React.FC<MintAddressFormProps> = ({ id, label, value, onChange, disabled }) => (
   <div className="mb-4">
     <label className="block text-toekn-orange font-toekn-regular text-sm font-bold mb-2" htmlFor={id}>
       {label}
     </label>
     <input
+      disabled={disabled}
       id={id}
       type="text"
       value={value}

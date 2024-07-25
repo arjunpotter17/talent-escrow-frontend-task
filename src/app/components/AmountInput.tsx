@@ -5,14 +5,16 @@ interface AmountInputProps {
   label: string;
   value: number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
 }
 
-const AmountInput: React.FC<AmountInputProps> = ({ id, label, value, onChange }) => (
+const AmountInput: React.FC<AmountInputProps> = ({ id, label, value, onChange,disabled }) => (
   <div className="mb-4">
     <label className="block text-toekn-orange font-toekn-regular text-sm font-bold mb-2" htmlFor={id}>
       {label}
     </label>
     <input
+      disabled={disabled}
       id={id}
       type="number"
       value={value}

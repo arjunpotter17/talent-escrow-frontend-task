@@ -147,7 +147,6 @@ const Home = () => {
       const data = await handleFetchEscrowState(
         closeEscrowAddress,
         false,
-        true
       );
       if (!data) return;
       const makerAtaA = getAssociatedTokenAddressSync(
@@ -260,7 +259,6 @@ const Home = () => {
   //function to fetch escrow state
   const handleFetchEscrowState = async (
     address: string,
-    forBlink?: boolean,
     returns?: boolean
   ) => {
     setFetchLoading(true);

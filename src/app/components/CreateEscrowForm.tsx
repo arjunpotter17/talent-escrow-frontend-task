@@ -21,7 +21,6 @@ interface CreateEscrowFormProps {
 
 const CreateEscrowForm: React.FC<CreateEscrowFormProps> = ({
   tokens,
-  selectedToken,
   amountToSend,
   receiveMintAddress,
   receiveAmount,
@@ -32,8 +31,8 @@ const CreateEscrowForm: React.FC<CreateEscrowFormProps> = ({
   setReceiveMintAddress,
   setReceiveAmount,
   loading,
-  setLoading,
 }) => {
+
   return (
     <form className="w-full max-w-lg">
       <TokenDropdown tokens={tokens} handleTokenChange={handleTokenChange} />

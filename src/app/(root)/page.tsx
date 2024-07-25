@@ -7,7 +7,6 @@ import {
   getMint,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { TokenListProvider, TokenInfo } from "@solana/spl-token-registry";
 import { createEscrow, refundEscrow, takeEscrow } from "../solana/solana";
 import { Escrow, IDL } from "../solana/idl";
 import { randomBytes } from "crypto";
@@ -18,36 +17,27 @@ import "../styles/stars.css";
 import { CloseIcon } from "../components/CloseIcon/CloseIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import { transition } from "../constants/transition";
-import { CopyToClipboard } from "react-copy-to-clipboard";
 import Footer from "../components/Footer/page";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Navbar from "../components/AppBar/page";
+import Popup from "../components/Popup/page";
+import {
+  fetchTokenMetadata,
+  generateStars,
+  setSubtitle,
+} from "../utils/subtitle";
 
 interface TokenData {
   address: PublicKey;
   name: string;
+  symbol: string;
+  logo: string;
 }
 
 interface CreateEscrow {
   txId: string;
   escrow: string;
 }
-
-//function to generate stars background
-const generateStars = (numStars: number) => {
-  const stars = [];
-  for (let i = 0; i < numStars; i++) {
-    const starStyle = {
-      left: `${Math.random() * 100}vw`,
-      top: `${Math.random() * 100}vh`,
-      animationDelay: `${Math.random() * 10}s`,
-      "--random-x": `${Math.random() - 0.5}`,
-      "--random-y": `${Math.random() - 0.5}`,
-    } as React.CSSProperties;
-    stars.push(<div className="star" style={starStyle} key={i} />);
-  }
-  return stars;
-};
 
 const Home = () => {
   //hooks
@@ -66,9 +56,6 @@ const Home = () => {
       },
     }),
   };
-  const handleCopy = () => {
-    alert("Link copied to clipboard!");
-  };
 
   //states
   const [activeTab, setActiveTab] = useState<string>("Make");
@@ -80,7 +67,6 @@ const Home = () => {
   const [receiveAmount, setReceiveAmount] = useState<number>(0);
   const [redeemEscrowAddress, setRedeemEscrowAddress] = useState<string>("");
   const [escrowState, setEscrowState] = useState<any>(null);
-  const [blinkEscrowState, setBlinkEscrowState] = useState<any>(null);
   const [createData, setCreateData] = useState<CreateEscrow>();
   const [stars, setStars] = useState<JSX.Element[]>([]);
   const [createLoading, setCreateLoading] = useState<boolean>(false);
@@ -91,6 +77,8 @@ const Home = () => {
   const [refundData, setRefundData] = useState<string>("");
   const [globalError, setGlobalError] = useState<string>("");
   const [blinkLink, setBlinkLink] = useState<string>("");
+  const [showPopup, setShowPopup] = useState<boolean>(false);
+  const [type, setType] = useState<"create" | "take" | "close">("create");
 
   //effect to fetch mint addresses on wallet connect
   useEffect(() => {
@@ -101,15 +89,6 @@ const Home = () => {
   useEffect(() => {
     setStars(generateStars(100));
   }, []);
-
-  //effect to set blink
-  useEffect(() => {
-    if (blinkEscrowState) {
-      setBlinkLink(
-        `https://toekn.vercel.app/api/actions/withdraw?escrow=${createData?.escrow}&maker=${blinkEscrowState.maker}&mintA=${blinkEscrowState.mintA}&mintB=${blinkEscrowState.mintB}`
-      );
-    }
-  }, [blinkEscrowState]);
 
   //function to create escrow
   const handleCreateEscrow = async () => {
@@ -141,6 +120,11 @@ const Home = () => {
 
       if (data) {
         setCreateData(data);
+        setBlinkLink(
+          `https://toekn.vercel.app/api/actions/withdraw?escrow=${data?.escrow}&maker=${wallet?.publicKey}&mintA=${initMint}&mintB=${mintB}`
+        );
+        setType("create");
+        setShowPopup(true);
       }
     } catch (error: any) {
       console.error("Error creating escrow:", error);
@@ -179,7 +163,11 @@ const Home = () => {
         data.seed,
         wallet
       );
-      if (closeTxId) setCloseData(closeTxId);
+      if (closeTxId) {
+        setCloseData(closeTxId);
+        setType("close");
+        setShowPopup(true);
+      }
     } catch (error: any) {
       console.error("Error closing escrow:", error);
       setGlobalError(`Error closing escrow: ${error.message}`);
@@ -208,35 +196,56 @@ const Home = () => {
     }
   };
 
-  //function to fetch token metadata and display name instead of addresses
-  const fetchTokenMetadata = async (mints: PublicKey[]) => {
-    const tokenList = await new TokenListProvider().resolve();
-    const tokenMap = tokenList.getList().reduce((map, token) => {
-      map[token.address] = token;
-      return map;
-    }, {} as Record<string, TokenInfo>);
+  //function to handle popup close
+  const handlePopupClose = (type: "create" | "take" | "close") => {
+    setShowPopup(false);
+    if (type === "create") {
+      setCreateData(undefined);
+    } else if (type === "take") {
+      setRefundData("");
+      setEscrowState(null);
+    } else if (type === "close") {
+      setCloseData("");
+    }
+  };
 
-    const tokensData = mints.map((mint) => {
-      const tokenInfo = tokenMap[mint.toBase58()];
-      return {
-        address: mint,
-        name: tokenInfo ? tokenInfo.name : mint.toBase58(),
-      };
-    });
+  //function to handle txId
+  const handleTxId = (type: "create" | "take" | "close"): string => {
+    switch (type) {
+      case "create":
+        return createData ? createData?.txId : "";
+      case "take":
+        return refundData;
+      case "close":
+        return closeData;
+      default:
+        return "";
+    }
+  };
 
-    setTokens(tokensData);
+  //function to handle blink link
+  const handleBlink = (type: "create" | "take" | "close"): string => {
+    switch (type) {
+      case "create":
+        return blinkLink;
+      default:
+        return "";
+    }
   };
 
   //function to fetch mint addresses
   const handleFetchMintAddresses = async () => {
-    if (!wallet.publicKey) setGlobalError("Please connect your wallet");
+    if (!wallet.publicKey) {
+      setGlobalError("Please connect your wallet");
+      return
+    } 
     const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-    const walletPublicKey = (window as any)?.solana.publicKey;
-    const mintAddresses = await getMintAddresses(connection, walletPublicKey);
+    const mintAddresses = await getMintAddresses(connection, wallet.publicKey);
     if (!mintAddresses) {
       throw new Error("No mint addresses found");
     }
-    await fetchTokenMetadata(mintAddresses);
+    const data = await fetchTokenMetadata(mintAddresses);
+    setTokens(data.filter((token) => token.name)); // Only set tokens with a valid name
   };
 
   //function to handle token change
@@ -271,17 +280,11 @@ const Home = () => {
         tokenBalance = parsedInfo.parsed.info.tokenAmount.uiAmount;
       }
 
-      forBlink
-        ? setBlinkEscrowState({
-            ...escrowAccount,
-            vaultAddress: vault.toBase58(),
-            tokenBalance,
-          })
-        : setEscrowState({
-            ...escrowAccount,
-            vaultAddress: vault.toBase58(),
-            tokenBalance,
-          });
+      setEscrowState({
+        ...escrowAccount,
+        vaultAddress: vault.toBase58(),
+        tokenBalance,
+      });
       return returns
         ? {
             ...escrowAccount,
@@ -309,7 +312,11 @@ const Home = () => {
         escrowState.maker,
         wallet
       );
-      if (refundTx) setRefundData(refundTx as any as string);
+      if (refundTx) {
+        setRefundData(refundTx as any as string);
+        setType("take");
+        setShowPopup(true);
+      }
     } catch (e: any) {
       console.error("Error refunding escrow:", e);
       setGlobalError(`Error refunding escrow: ${e.message}`);
@@ -320,8 +327,20 @@ const Home = () => {
     }
   };
 
-  return stars ? (
+  return (
     <main className="flex flex-col scroll-smooth gap-y-10 min-h-screen items-center justify-center p-6 bg-black relative overflow-hidden">
+      {showPopup && (
+        <Popup
+          title="Transaction Successful"
+          subTitle={setSubtitle(type)}
+          explorerLink={handleTxId(type)}
+          onClose={() => handlePopupClose(type)}
+          blink={handleBlink(type)}
+          escrowAddress={
+            type === "create" ? (createData?.escrow as string) : ""
+          }
+        />
+      )}
       <motion.div
         initial="hidden"
         animate="visible"
@@ -392,7 +411,6 @@ const Home = () => {
             onClick={() => {
               setActiveTab("Make");
               setCreateData(undefined);
-              setBlinkEscrowState(undefined);
             }}
           >
             Create Escrow
@@ -443,77 +461,6 @@ const Home = () => {
                 setLoading={setCreateLoading}
                 disabled={createData ? true : false}
               />
-              <AnimatePresence>
-                {createData && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.5 }}
-                    className="flex flex-col border border-toekn-white mt-5 p-3"
-                  >
-                    <button
-                      onClick={() => {
-                        setCreateData(undefined);
-                        setBlinkEscrowState(undefined);
-                      }}
-                      className="self-end cursor-pointer"
-                    >
-                      <CloseIcon size="25" color="#A04000" />
-                    </button>
-                    <div className="w-full max-w-lg  mt-4 text-toekn-white font-bold font-toekn-regular ">
-                      <p className="text-justify">
-                        Your escrow has been created! Please keep the escrow
-                        address handy. It will be needed to close the escrow.
-                        You can share it with your peer who wishes to withdraw
-                        from the escrow.
-                      </p>
-                      <p
-                        className="text-toekn-orange hover:underline font-toekn-regular cursor-pointer"
-                        onClick={() =>
-                          window.open(
-                            `https://explorer.solana.com/tx/${createData?.txId}?cluster=devnet`,
-                            "_blank"
-                          )
-                        }
-                      >
-                        View Transaction on Explorer
-                      </p>
-
-                      <p className="mt-2">
-                        Escrow Address:{" "}
-                        <span className="text-toekn-orange">
-                          {createData?.escrow}
-                        </span>
-                      </p>
-                      {!blinkLink ? (
-                        <button
-                          onClick={async () => {
-                            await handleFetchEscrowState(
-                              createData?.escrow as string,
-                              true
-                            );
-                          }}
-                          className="px-4 py-2 bg-toekn-orange hover:bg-toekn-dark-orange hover:text-white hover:border-toekn-orange mt-2"
-                        >
-                          Blink
-                        </button>
-                      ) : (
-                        <div className="mt-2">
-                          <div className="text-toekn-orange text-base font-toekn-regular text-justify">
-                            {blinkLink.slice(0, 50)}...
-                          </div>
-                          <CopyToClipboard text={blinkLink} onCopy={handleCopy}>
-                            <button className="px-2 py-1 bg-toekn-orange hover:bg-toekn-dark-orange hover:text-white hover:border-toekn-orange mt-2">
-                              Copy Full Link
-                            </button>
-                          </CopyToClipboard>
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </>
           )}
           {activeTab === "Receive" && (
@@ -527,41 +474,6 @@ const Home = () => {
                 fetchLoading={fetchLoading}
                 withdrawLoading={withdrawLoading}
               />
-              <AnimatePresence>
-                {refundData && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.5 }}
-                    className="flex flex-col border border-toekn-white mt-5 p-3"
-                  >
-                    <button
-                      onClick={() => setRefundData("")}
-                      className="self-end cursor-pointer"
-                    >
-                      <CloseIcon size="25" color="#A04000" />
-                    </button>
-                    <div className="w-full max-w-lg  mt-4 text-toekn-white font-bold font-toekn-regular ">
-                      <p className="text-justify">
-                        Your withdrawl is complete and the escrow account has
-                        been closed. Please check the details below.
-                      </p>
-                      <p
-                        className="text-toekn-orange hover:underline font-toekn-regular cursor-pointer"
-                        onClick={() =>
-                          window.open(
-                            `https://explorer.solana.com/tx/${refundData}?cluster=devnet`,
-                            "_blank"
-                          )
-                        }
-                      >
-                        View Transaction on Explorer
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </>
           )}
           {activeTab === "Close" && (
@@ -572,41 +484,6 @@ const Home = () => {
                 setEscrowAddress={setCloseEscrowAddress}
                 loading={closeLoading}
               />
-              <AnimatePresence>
-                {closeData !== "" && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.5 }}
-                    className="flex flex-col border border-toekn-white mt-5 p-3"
-                  >
-                    <button
-                      onClick={() => setCloseData("")}
-                      className="self-end cursor-pointer"
-                    >
-                      <CloseIcon size="25" color="#A04000" />
-                    </button>
-                    <div className="w-full max-w-lg  mt-4 text-toekn-white font-bold font-toekn-regular ">
-                      <p className="text-justify">
-                        Your escrow has been closed and the funds have been
-                        transferred back to the maker account.
-                      </p>
-                      <p
-                        className="text-toekn-orange hover:underline font-toekn-regular cursor-pointer"
-                        onClick={() =>
-                          window.open(
-                            `https://explorer.solana.com/tx/${closeData}?cluster=devnet`,
-                            "_blank"
-                          )
-                        }
-                      >
-                        View Transaction on Explorer
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </>
           )}
         </div>
@@ -621,8 +498,6 @@ const Home = () => {
         <Footer />
       </motion.div>
     </main>
-  ) : (
-    <p>Fetching Toekn.</p>
   );
 };
 

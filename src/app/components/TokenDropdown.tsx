@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { TokenData } from "../types";
-import './dropdown.css';
+import "./dropdown.css";
 
 interface TokenDropdownProps {
   tokens: TokenData[];
@@ -10,27 +10,78 @@ interface TokenDropdownProps {
 const TokenDropdown: React.FC<TokenDropdownProps> = ({
   tokens,
   handleTokenChange,
-}) => (
-  <div className="mb-4">
-    <label
-      className="block text-toekn-orange font-toekn-regular text-sm font-bold mb-2"
-      htmlFor="token-dropdown"
-    >
-      Select Token
-    </label>
-    <select
-      id="token-dropdown"
-      onChange={handleTokenChange}
-      className="shadow appearance-none rounded w-full py-2 px-3 text-toekn-white leading-tight focus:outline-none focus:shadow-outline border border-toekn-white bg-transparent"
-    >
-      <option value="">Select a token</option>
-      {tokens.map((token) => (
-        <option className="option" key={token.address.toBase58()} value={token.address.toBase58()}>
-          {token.name}
-        </option>
-      ))}
-    </select>
-  </div>
-);
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedToken, setSelectedToken] = useState<TokenData | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleSelect = (token: TokenData) => {
+    setSelectedToken(token);
+    const event = {
+      target: {
+        value: token.address.toBase58()
+      }
+    } as React.ChangeEvent<HTMLSelectElement>;
+    handleTokenChange(event);
+    setIsOpen(false);
+  };
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      setIsOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <div className="mb-4 relative" ref={dropdownRef}>
+      <label
+        className="block text-toekn-orange font-toekn-semibold text-sm mb-2"
+        htmlFor="token-dropdown"
+      >
+        Select Token
+      </label>
+      <div
+        className="shadow appearance-none rounded w-full py-2 px-3 text-token-white leading-tight focus:outline-none focus:shadow-outline border border-token-white bg-transparent cursor-pointer"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {selectedToken ? (
+          <div className="flex items-center">
+            <img src={selectedToken.logo || "/solana.jpeg"} alt={selectedToken.name} className="w-6 h-6 mr-2" />
+            <div className="flex flex-col">
+              <span className="font-toekn-bold text-toekn-orange">{selectedToken.name}</span>
+              <span className="font-toekn-semibold text-toekn-dark-white text-xs">{selectedToken.address.toBase58()}</span>
+            </div>
+          </div>
+        ) : (
+          <span className="text-token-white">Select a token</span>
+        )}
+      </div>
+      {isOpen && (
+        <div className="absolute left-0 w-full bg-black border border-token-white mt-1 z-10 rounded max-h-60 overflow-y-auto scroll-smooth">
+          {tokens.map((token) => (
+            <div
+              key={token.address.toBase58()}
+              className="option flex items-center py-2 px-3 hover:bg-gray-700 cursor-pointer"
+              onClick={() => handleSelect(token)}
+            >
+              <img src={token.logo || "/solana.jpeg"} alt={token.name} className="w-8 h-8 mr-2" />
+              <div className="flex flex-col">
+                <span className="font-toekn-bold text-toekn-orange">{token.name}</span>
+                <span className="font-toekn-semibold text-toekn-dark-white text-xs">{token.address.toBase58()}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default TokenDropdown;

@@ -1,8 +1,52 @@
-option {
-  background-color: #1c1c1c;
+/* dropdown.css */
+.option {
+  display: flex;
+  align-items: center;
+}
+
+.option img {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+}
+
+.option .option-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.text-token-white {
   color: #fff;
 }
 
-option:hover {
-  background-color: #333;
+.text-token-orange {
+  color: #ff9900;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.hover\\:bg-gray-700:hover {
+  background-color: #4a5568;
+}
+
+.z-10 {
+  z-index: 10;
+}
+
+.max-h-60 {
+  max-height: 15rem; /* Adjust as needed */
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
 }

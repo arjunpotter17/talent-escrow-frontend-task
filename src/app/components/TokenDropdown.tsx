@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { TokenData } from "../types";
 import "./dropdown.css";
 import { useWallet } from "@solana/wallet-adapter-react";
-import Image from "next/image";
 
 interface TokenDropdownProps {
   tokens: TokenData[];
@@ -73,7 +72,7 @@ const TokenDropdown: React.FC<TokenDropdownProps> = ({
       >
         {selectedToken ? (
           <div className="flex items-center">
-            <Image
+            <img
               src={selectedToken.logo || "/solana.jpeg"}
               alt={selectedToken.name}
               className="w-6 h-6 mr-2"
@@ -105,7 +104,7 @@ const TokenDropdown: React.FC<TokenDropdownProps> = ({
               className="option flex items-center py-2 px-3 hover:bg-gray-700 cursor-pointer"
               onClick={() => handleSelect(token)}
             >
-              <Image
+              <img
                 src={token.logo || "/solana.jpeg"}
                 alt={token.name}
                 className="w-8 h-8 mr-2"

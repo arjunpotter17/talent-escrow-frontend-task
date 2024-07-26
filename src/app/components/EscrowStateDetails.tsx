@@ -24,12 +24,13 @@ const EscrowStateDetails: React.FC<EscrowStateDetailsProps> = ({
   const [mintBDecimals, setMintBDecimals] = useState<number>(0);
 
   const commitment: Commitment = "confirmed";
-  const connection = new Connection(
-    "https://api.devnet.solana.com",
-    commitment
-  );
+  
 
   useEffect(() => {
+    const connection = new Connection(
+      "https://api.devnet.solana.com",
+      commitment
+    );
     const fetchDecimals = async () => {
       try {
         const mintBInfo = await getMint(connection, escrowState.mintB);
@@ -42,7 +43,6 @@ const EscrowStateDetails: React.FC<EscrowStateDetailsProps> = ({
 
     fetchDecimals();
   }, [
-    connection,
     escrowState.mintA,
     escrowState.mintB,
     escrowState.tokenBalance,

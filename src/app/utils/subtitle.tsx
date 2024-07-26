@@ -114,7 +114,6 @@ export const getNonZeroBalanceTokens = async (mintAddresses: PublicKey[], key:Pu
     const accountData = AccountLayout.decode(tokenAccount.account.data);
     const mint = new PublicKey(accountData.mint);
     const balance = new BN(accountData.amount, 10, 'le').toNumber();
-    // const balance = u64.fromBuffer(accountData.amount).toNumber();
 
     if (balance > 0 && mintAddresses.some((mintAddress) => mintAddress.equals(mint))) {
       nonZeroBalanceMintAddresses.push(mint);

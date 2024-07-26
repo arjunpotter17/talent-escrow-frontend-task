@@ -27,6 +27,7 @@ const CloseEscrowForm: React.FC<CloseEscrowFormProps> = ({
     >
 
       <div className="mb-4">
+        <p className="text-toekn-white text-sm font-bold mb-4">Enter the address of the escrow account you&apos;d like to close. No funny business, make sure it&apos;s yours.</p>
         <label
           htmlFor="escrowAddress"
           className="block text-toekn-orange text-sm font-bold mb-2"

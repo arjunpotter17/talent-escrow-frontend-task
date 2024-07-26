@@ -83,7 +83,7 @@ const Popup = ({
                     {blink.slice(0, 50)}...
                   </div>
                   <CopyToClipboard text={blink} onCopy={handleCopy}>
-                    <button className="px-2 py-1 bg-toekn-orange text-base hover:bg-toekn-dark-orange hover:text-white hover:border-toekn-orange mt-2">
+                    <button className="px-3 py-2 bg-toekn-orange text-sm hover:bg-toekn-dark-orange hover:text-white hover:border-toekn-orange mt-2">
                       Copy Blink!
                     </button>
                   </CopyToClipboard>

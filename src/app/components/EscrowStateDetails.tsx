@@ -5,6 +5,8 @@ import Spinner from "./Spinner/Spinner";
 
 interface EscrowStateDetailsProps {
   escrowState: {
+    mintAName: string;
+    mintBName: string;
     mintA: PublicKey;
     mintB: PublicKey;
     tokenBalance: number;
@@ -50,9 +52,9 @@ const EscrowStateDetails: React.FC<EscrowStateDetailsProps> = ({
     <div className="flex flex-col gap-y-4 mt-4 p-4 border text-toekn-white border-toekn-white bg-transparent">
       <p>
         Do you want to swap{" "}
-        {escrowState.receive.words[0] / Math.pow(10, mintBDecimals)} of{" "}
-        {escrowState.mintB.toBase58()} tokens for {escrowState.tokenBalance} of{" "}
-        {escrowState.mintA.toBase58()} tokens?
+        <span className="text-red-400">{escrowState.receive.words[0] / Math.pow(10, mintBDecimals)} {" "}
+        {escrowState.mintBName || escrowState.mintB.toBase58()}</span> tokens to receive <span className="text-green-500">{escrowState.tokenBalance} {" "}
+        {escrowState.mintAName || escrowState.mintA.toBase58()}</span> tokens?
       </p>
       <button
         type="button"

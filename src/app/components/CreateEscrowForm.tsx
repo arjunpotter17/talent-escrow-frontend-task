@@ -12,6 +12,7 @@ interface CreateEscrowFormProps {
   receiveAmount: number;
   loading: boolean;
   disabled: boolean;
+  fetchingMints: boolean;
   setLoading: (value: boolean) => void;
   handleCreateEscrow: () => void;
   handleTokenChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
@@ -26,6 +27,7 @@ const CreateEscrowForm: React.FC<CreateEscrowFormProps> = ({
   receiveMintAddress,
   receiveAmount,
   disabled,
+  fetchingMints,
   handleCreateEscrow,
   handleTokenChange,
   setAmountToSend,
@@ -36,7 +38,7 @@ const CreateEscrowForm: React.FC<CreateEscrowFormProps> = ({
   const {publicKey} = useWallet();
   return (
     <form className="w-full max-w-lg">
-      <TokenDropdown tokens={tokens} handleTokenChange={handleTokenChange} />
+      <TokenDropdown tokens={tokens} handleTokenChange={handleTokenChange} fetchingMints={fetchingMints}/>
       <AmountInput
         id="amount-to-send"
         label="Amount to Send"

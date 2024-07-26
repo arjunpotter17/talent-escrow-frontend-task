@@ -24,6 +24,7 @@ import Popup from "../components/Popup/page";
 import {
   fetchTokenMetadata,
   generateStars,
+  getNonZeroBalanceTokens,
   setSubtitle,
 } from "../utils/subtitle";
 
@@ -79,6 +80,7 @@ const Home = () => {
   const [blinkLink, setBlinkLink] = useState<string>("");
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const [type, setType] = useState<"create" | "take" | "close">("create");
+  const [fetchingMints, setFetchingMints] = useState<boolean>(false);
 
   //effect to fetch mint addresses on wallet connect
   useEffect(() => {
@@ -89,6 +91,15 @@ const Home = () => {
   useEffect(() => {
     setStars(generateStars(100));
   }, []);
+
+  //effect to reset fields
+  useEffect(() => {
+    if(!wallet.publicKey) {
+      setAmountToSend(1);
+      setReceiveAmount(0);
+      setReceiveMintAddress("");
+    }
+  }, [wallet.publicKey])
 
   //function to create escrow
   const handleCreateEscrow = async () => {
@@ -234,18 +245,42 @@ const Home = () => {
 
   //function to fetch mint addresses
   const handleFetchMintAddresses = async () => {
+    setFetchingMints(true);
     if (!wallet.publicKey) {
+      setFetchingMints(false);
       setGlobalError("Please connect your wallet");
-      return
-    } 
+      return;
+    }
+    
     const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
     const mintAddresses = await getMintAddresses(connection, wallet.publicKey);
+  
     if (!mintAddresses) {
+      setFetchingMints(false);
       throw new Error("No mint addresses found");
     }
-    const data = await fetchTokenMetadata(mintAddresses);
+    try{
+      const nonZeroBalanceMintAddresses = await getNonZeroBalanceTokens(mintAddresses, wallet.publicKey);
+    
+    
+    
+    if (nonZeroBalanceMintAddresses?.length === 0) {
+      setFetchingMints(false);
+      setTokens([]);
+      return;
+    }
+  
+    const data = await fetchTokenMetadata(nonZeroBalanceMintAddresses);
     setTokens(data.filter((token) => token.name)); // Only set tokens with a valid name
+    setFetchingMints(false);
+  }catch(e:any){
+    setFetchingMints(false);
+    console.error("Error fetching mint addresses:", e);
+    setGlobalError(`Error fetching mint addresses: ${e.message}`);
+  }
   };
+  
+
 
   //function to handle token change
   const handleTokenChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -272,6 +307,7 @@ const Home = () => {
       );
       const vaultAccountInfo = await connection.getParsedAccountInfo(vault);
 
+      const tokenNames = await fetchTokenMetadata([escrowAccount.mintA, escrowAccount.mintB]);
       let tokenBalance = 0;
       if (vaultAccountInfo.value && "parsed" in vaultAccountInfo.value.data) {
         const parsedInfo = vaultAccountInfo.value.data;
@@ -280,6 +316,8 @@ const Home = () => {
 
       setEscrowState({
         ...escrowAccount,
+        mintBName: tokenNames[1]?.name ? tokenNames[1]?.name : "",
+        mintAName: tokenNames[0]?.name ? tokenNames[0]?.name : "",
         vaultAddress: vault.toBase58(),
         tokenBalance,
       });
@@ -457,6 +495,7 @@ const Home = () => {
                 setReceiveAmount={setReceiveAmount}
                 loading={createLoading}
                 setLoading={setCreateLoading}
+                fetchingMints={fetchingMints}
                 disabled={createData ? true : false}
               />
             </>

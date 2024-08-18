@@ -4,8 +4,8 @@ import dynamic from "next/dynamic";
 import { useWindowSize } from "@/app/hooks/use-weindowSize";
 import "./navbar.styles.css";
 
-const NavbarDesktop = dynamic(() => import("./NavbarDesktop/page"));
-const NavBarResponsive = dynamic(() => import("./NavbarResponsive/page"));
+const NavbarDesktop = dynamic(() => import("./NavbarDesktop/navbarDesktop"));
+const NavBarResponsive = dynamic(() => import("./NavbarResponsive/navbarResponsive"));
 
 const Sidebar = (): JSX.Element => {
   const [isOpen, setIsOpen] = useState<boolean>(false);

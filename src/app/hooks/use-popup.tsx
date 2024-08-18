@@ -5,7 +5,7 @@ import React, {
   useContext,
   useMemo,
 } from "react";
-import Popup from "../components/Popup/page";
+import Popup from "../components/Popup/popup";
 import { setSubtitle } from "../utils/subtitle";
 
 

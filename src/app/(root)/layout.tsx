@@ -8,7 +8,7 @@ import {
 } from "@solana/wallet-adapter-react";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import Navbar from "../components/AppBar/page";
+import Navbar from "../components/AppBar/appbar";
 import { PopupProvider } from "../hooks/use-popup";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

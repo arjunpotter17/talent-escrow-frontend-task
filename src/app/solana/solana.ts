@@ -235,50 +235,50 @@ export const takeEscrow = async (
   }
 };
 
-export const getAllEscrows = () => useSWR(
-  'ALL_ESCROWS',
-  async () => {
-    const escrows = await program.account.escrow.all();
-    
-    const promises = escrows.map(async (escrow) => {
-      const { account, publicKey } = escrow;
-      
-      const tokenNames = await fetchTokenMetadata([
-        escrow.account.mintA,
-        escrow.account.mintB,
-      ]);
-      
-      const vault = getAssociatedTokenAddressSync(
-        escrow.account.mintA,
-        escrow.publicKey,
-        true
-      );
-      
-      const deposit = await connection.getTokenAccountBalance(vault);
-      const mintInfo = await getMint(connection, escrow.account.mintB);
-      
-      const expectedAmountToReceive = account.receive
-        .div(new BN(10 ** mintInfo.decimals))
-        .toNumber();
-      
-      return {
-        address: publicKey,
-        maker: account.maker,
-        mintA: account.mintA,
-        tokenNameA: tokenNames[0]?.name,
-        logoA: tokenNames[0]?.logo,
-        mintB: account.mintB,
-        tokenNameB: tokenNames[1]?.name,
-        logoB: tokenNames[1]?.logo,
-        deposit: deposit.value.uiAmount ?? 0,
-        expectedAmountToReceive,
-      };
-    });
+export const useEscrows = () =>
+  useSWR(
+    "ALL_ESCROWS",
+    async () => {
+      const escrows = await program.account.escrow.all();
 
-    return Promise.all(promises);
-  },
-  {
-    
-    revalidateOnReconnect: false,
-  }
-);
+      const promises = escrows.map(async (escrow) => {
+        const { account, publicKey } = escrow;
+
+        const tokenNames = await fetchTokenMetadata([
+          escrow.account.mintA,
+          escrow.account.mintB,
+        ]);
+
+        const vault = getAssociatedTokenAddressSync(
+          escrow.account.mintA,
+          escrow.publicKey,
+          true
+        );
+
+        const deposit = await connection.getTokenAccountBalance(vault);
+        const mintInfo = await getMint(connection, escrow.account.mintB);
+
+        const expectedAmountToReceive = account.receive
+          .div(new BN(10 ** mintInfo.decimals))
+          .toNumber();
+
+        return {
+          address: publicKey,
+          maker: account.maker,
+          mintA: account.mintA,
+          tokenNameA: tokenNames[0]?.name,
+          logoA: tokenNames[0]?.logo,
+          mintB: account.mintB,
+          tokenNameB: tokenNames[1]?.name,
+          logoB: tokenNames[1]?.logo,
+          deposit: deposit.value.uiAmount ?? 0,
+          expectedAmountToReceive,
+        };
+      });
+
+      return Promise.all(promises);
+    },
+    {
+      revalidateOnReconnect: false,
+    }
+  );

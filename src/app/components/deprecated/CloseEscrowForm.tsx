@@ -1,12 +1,6 @@
-import { useState } from "react";
-import Spinner from "./Spinner/Spinner";
+import { CloseEscrowFormProps } from "@/app/interfaces";
+import Spinner from "../Spinner/Spinner";
 
-interface CloseEscrowFormProps {
-  escrowAddress: string;
-  loading: boolean;
-  handleCloseEscrow: () => void;
-  setEscrowAddress: (address: string) => void;
-}
 
 const CloseEscrowForm: React.FC<CloseEscrowFormProps> = ({
   escrowAddress,

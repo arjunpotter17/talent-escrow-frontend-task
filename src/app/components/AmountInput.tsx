@@ -1,16 +1,18 @@
-import React from 'react';
+import React from "react";
+import { AmountInputProps } from "../interfaces";
 
-interface AmountInputProps {
-  id: string;
-  label: string;
-  value: number;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  disabled?: boolean;
-}
-
-const AmountInput: React.FC<AmountInputProps> = ({ id, label, value, onChange,disabled }) => (
+const AmountInput: React.FC<AmountInputProps> = ({
+  id,
+  label,
+  value,
+  onChange,
+  disabled,
+}) => (
   <div className="mb-4">
-    <label className="block text-toekn-orange font-toekn-regular text-sm font-bold mb-2" htmlFor={id}>
+    <label
+      className="block text-[#747f8b] font-toekn-regular text-sm font-bold mb-2"
+      htmlFor={id}
+    >
       {label}
     </label>
     <input

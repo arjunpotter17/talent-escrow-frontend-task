@@ -1,16 +1,9 @@
 import React from 'react';
-
-interface MintAddressFormProps {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  disabled?: boolean;
-}
+import { MintAddressFormProps } from '../interfaces';
 
 const MintAddressForm: React.FC<MintAddressFormProps> = ({ id, label, value, onChange, disabled }) => (
   <div className="mb-4">
-    <label className="block text-toekn-orange font-toekn-regular text-sm font-bold mb-2" htmlFor={id}>
+    <label className="block text-[#747f8b] font-toekn-regular text-sm font-bold mb-2" htmlFor={id}>
       {label}
     </label>
     <input

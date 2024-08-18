@@ -3,14 +3,10 @@ import "./spinner.css";
 
 const Spinner = ({
   size,
-  classNames = "",
   color = "#545ae6",
-  marginTop = "auto",
 }: {
   size?: number | string;
-  classNames?: string;
   color?: string;
-  marginTop?: string;
 }): JSX.Element => {
   return (
     <svg
@@ -19,7 +15,7 @@ const Spinner = ({
       height={`${size}px`}
       viewBox="0 0 66 66"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ color: color, marginTop: marginTop }}
+      style={{ color: color }}
     >
       <circle
         className="path"

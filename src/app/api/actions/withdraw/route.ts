@@ -10,26 +10,25 @@ import {
   Connection,
   PublicKey,
   SystemProgram,
-  Keypair
-} from "@solana/web3.js";
-import { AnchorProvider, Program } from "@coral-xyz/anchor";
-import { IDL } from "@/app/solana/idl";
+  } from "@solana/web3.js";
+import { Program } from "@coral-xyz/anchor";
+import { Escrow, IDL } from "@/app/solana/idl";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 
-const DEFAULT_SOL_ADDRESS = "5o3x9hBMDeLe3LYw7PKnyGiBD7LhroMFxt4LS2eoydR1";
+
+const DEFAULT_SOL_ADDRESS = "5o3x9hBMDeLe3LYw7PKnyGiBD7LhroMFxt4LS2eoydR1"; //my pubkey, plis no hack
 const connection = new Connection(clusterApiUrl("devnet"), "finalized");
 
 export async function GET(req: Request, res: Response) {
   const responseBody: ActionGetResponse = {
-    icon: "https://example.com/icon.png",
+    icon: "https://solana.com/_next/static/media/logotype.e4df684f.svg",
     title: "Toekn.",
     description: "Swap SPL tokens on Solana.",
-    label: "Accept Trade",
+    label: "Accept Swap",
   };
 
   const response = Response.json(responseBody, {
@@ -43,10 +42,7 @@ export async function POST(req: Request, res: Response) {
   const userKey = postReq.account;
   const requestUrl = new URL(req.url);
   const { escrow, mintA, mintB, maker } = await validatedQueryParams(requestUrl);
-
-  let wallet = new NodeWallet(new Keypair());
-  const provider = new AnchorProvider(connection, wallet);
-  const program = new Program(IDL, provider);
+  const program = new Program<Escrow>(IDL, { connection });
 
 
   const vault = getAssociatedTokenAddressSync(

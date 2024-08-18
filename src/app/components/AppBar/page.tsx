@@ -1,23 +1,24 @@
-"use client";
-import React, { useEffect, useState } from "react";
-import "@solana/wallet-adapter-react-ui/styles.css";
+import React, { useState } from "react";
 import dynamic from "next/dynamic";
+import { useWindowSize } from "@/app/hooks/use-weindowSize";
+import "./navbar.styles.css";
 
-const WalletMultiButtonDynamic = dynamic(
-  () =>
-    import("@solana/wallet-adapter-react-ui").then(
-      (mod) => mod.WalletMultiButton
-    ),
-  { ssr: false }
-);
+const NavbarDesktop = dynamic(() => import("./NavbarDesktop/page"));
+const NavBarResponsive = dynamic(() => import("./NavbarResponsive/page"));
 
-const Navbar = () => {
-  const [mounted, setMounted] = useState(false);
+const Sidebar = (): JSX.Element => {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const windowSize = useWindowSize()[0];
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  return <div className="!z-50">{mounted && <WalletMultiButtonDynamic />}</div>;
+  //switch navbar based on window size
+  return windowSize > 900 ? (
+    <NavbarDesktop />
+  ) : (
+    <>
+      <NavBarResponsive isOpen={isOpen} setIsOpen={setIsOpen} />
+      {isOpen && <div className={"wall"} />}
+    </>
+  );
 };
 
-export default Navbar;
+export default Sidebar;

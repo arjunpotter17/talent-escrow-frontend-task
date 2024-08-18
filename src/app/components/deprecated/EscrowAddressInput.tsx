@@ -1,13 +1,15 @@
-import React from 'react';
+import { EscrowAddressInputProps } from "@/app/interfaces";
+import React from "react";
 
-interface EscrowAddressInputProps {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}
-
-const EscrowAddressInput: React.FC<EscrowAddressInputProps> = ({ value, onChange }) => (
+const EscrowAddressInput: React.FC<EscrowAddressInputProps> = ({
+  value,
+  onChange,
+}) => (
   <div className="mb-4 w-full">
-    <label className="block text-toekn-orange text-sm font-bold mb-2" htmlFor="escrow-address">
+    <label
+      className="block text-toekn-orange text-sm font-bold mb-2"
+      htmlFor="escrow-address"
+    >
       Escrow Address
     </label>
     <input

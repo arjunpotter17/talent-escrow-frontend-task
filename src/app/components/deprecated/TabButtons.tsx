@@ -1,9 +1,6 @@
+import { TabButtonsProps } from '@/app/interfaces';
 import React from 'react';
 
-interface TabButtonsProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-}
 
 const TabButtons: React.FC<TabButtonsProps> = ({ activeTab, setActiveTab }) => (
   <div className="flex mb-4">

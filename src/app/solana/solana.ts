@@ -10,8 +10,12 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
   getAssociatedTokenAddressSync,
+  getMint,
 } from "@solana/spl-token";
 import { WalletContextState } from "@solana/wallet-adapter-react";
+import { toast } from "react-toastify";
+import useSWR from "swr";
+import { fetchTokenMetadata } from "../utils/fetchTokenMetada";
 
 //common constants
 const programId = new PublicKey("7gW2yGMScBLiHhGPmFxjb83Vay6DrAtuP1BjjUct85ZX");
@@ -227,5 +231,54 @@ export const takeEscrow = async (
     return txId;
   } catch (error) {
     console.error("Error taking escrow:", error);
+    toast.error("Error withdrawing from escrow");
   }
 };
+
+export const getAllEscrows = () => useSWR(
+  'ALL_ESCROWS',
+  async () => {
+    const escrows = await program.account.escrow.all();
+    
+    const promises = escrows.map(async (escrow) => {
+      const { account, publicKey } = escrow;
+      
+      const tokenNames = await fetchTokenMetadata([
+        escrow.account.mintA,
+        escrow.account.mintB,
+      ]);
+      
+      const vault = getAssociatedTokenAddressSync(
+        escrow.account.mintA,
+        escrow.publicKey,
+        true
+      );
+      
+      const deposit = await connection.getTokenAccountBalance(vault);
+      const mintInfo = await getMint(connection, escrow.account.mintB);
+      
+      const expectedAmountToReceive = account.receive
+        .div(new BN(10 ** mintInfo.decimals))
+        .toNumber();
+      
+      return {
+        address: publicKey,
+        maker: account.maker,
+        mintA: account.mintA,
+        tokenNameA: tokenNames[0]?.name,
+        logoA: tokenNames[0]?.logo,
+        mintB: account.mintB,
+        tokenNameB: tokenNames[1]?.name,
+        logoB: tokenNames[1]?.logo,
+        deposit: deposit.value.uiAmount ?? 0,
+        expectedAmountToReceive,
+      };
+    });
+
+    return Promise.all(promises);
+  },
+  {
+    
+    revalidateOnReconnect: false,
+  }
+);

@@ -13,7 +13,7 @@ const config: Config = {
         "toekn-white": "#F7F7F7",
         "toekn-dark-white": "#F2F2F2",
         "toekn-dark-orange": "#A04000",
-        "toekn-black": "#000000",
+        "toekn-black": "#111314",
         "toekn-popup-bg": "#2d3748",
       },
       fontFamily: {
@@ -46,6 +46,8 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('tailwind-scrollbar'),
+  ],
 };
 export default config;

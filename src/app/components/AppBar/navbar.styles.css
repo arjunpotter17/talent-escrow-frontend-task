@@ -1,0 +1,24 @@
+.wall {
+  background-color: rgba(22, 22, 61, 0.56);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  animation: changeBg 400ms linear;
+}
+
+@keyframes changeBg {
+  0% {
+    background-color: transparent;
+  }
+
+  100% {
+    background-color: rgba(22, 22, 61, 0.56);
+  }
+}
+
+.btnParent {
+  position: relative;
+}

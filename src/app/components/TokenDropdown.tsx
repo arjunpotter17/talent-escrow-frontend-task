@@ -1,13 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { TokenData } from "../types";
+import { TokenData, TokenDropdownProps } from "../interfaces";
 import "./dropdown.css";
 import { useWallet } from "@solana/wallet-adapter-react";
-
-interface TokenDropdownProps {
-  tokens: TokenData[];
-  fetchingMints?: boolean;
-  handleTokenChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-}
 
 const TokenDropdown: React.FC<TokenDropdownProps> = ({
   tokens,
@@ -56,7 +50,7 @@ const TokenDropdown: React.FC<TokenDropdownProps> = ({
   return (
     <div className="mb-4 relative" ref={dropdownRef}>
       <label
-        className="block text-toekn-orange font-toekn-semibold text-sm mb-2"
+        className="block text-[#747f8b] font-toekn-semibold text-sm mb-2"
         htmlFor="token-dropdown"
       >
         Select Token
@@ -97,7 +91,7 @@ const TokenDropdown: React.FC<TokenDropdownProps> = ({
         )}
       </div>
       {isOpen && (
-        <div className="absolute left-0 w-full bg-black border border-token-white mt-1 z-10 rounded max-h-60 overflow-y-auto scroll-smooth">
+        <div className="absolute left-0 w-full bg-black border border-token-white mt-1 z-10 rounded max-h-60 overflow-y-auto scrollbar-thin scrollbar-track-toekn-black scrollbar-thumb-toekn-popup-bg scroll-smooth">
           {tokens.map((token) => (
             <div
               key={token.address.toBase58()}

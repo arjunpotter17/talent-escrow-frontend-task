@@ -1,19 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CloseIcon } from "../CloseIcon/CloseIcon";
-import CopyToClipboard from "react-copy-to-clipboard";
+import { CloseIcon } from "../Icons/CloseIcon";
+import { usePathname, useRouter } from "next/navigation";
+import { PopupInterface } from "@/app/interfaces";
 
-const Popup = ({
-  onClose,
-  explorerLink,
-  title,
-  subTitle,
-  escrowAddress,
-  blink,
-}: any) => {
+const Popup = ({ onClose, explorerLink, title, subTitle }: PopupInterface) => {
   const [isAnimating, setIsAnimating] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
+
+  const router = useRouter();
+  const path = usePathname();
 
   useEffect(() => {
     // Trigger the opening animation after the component mounts
@@ -29,11 +26,10 @@ const Popup = ({
     setTimeout(() => {
       setIsAnimating(false);
       onClose();
+      if (path === "/create") {
+        router.push("/");
+      }
     }, 500); // Duration of the closing animation
-  };
-
-  const handleCopy = () => {
-    alert("Link copied to clipboard!");
   };
 
   return (
@@ -59,11 +55,11 @@ const Popup = ({
               <p className="text-toekn-subtitle-mobile font-toekn-regular ct-md:text-toekn-subtitle mt-1">
                 {subTitle || ""}
               </p>
-              {escrowAddress && (
+              {/* {escrowAddress && (
                 <p className="mt-1 text-toekn-subtitle-mobile font-toekn-regular ct-md:text-toekn-subtitle">
                   Escrow Address: {escrowAddress}
                 </p>
-              )}
+              )} */}
               {explorerLink && (
                 <p
                   onClick={() =>
@@ -77,7 +73,10 @@ const Popup = ({
                   Visit Explorer
                 </p>
               )}
-              {blink && (
+
+              {/* code for old blink copy */}
+
+              {/* {blink && (
                 <div className="mt-2">
                   <div className="text-toekn-orange text-base font-toekn-regular text-justify">
                     {blink.slice(0, 50)}...
@@ -87,8 +86,8 @@ const Popup = ({
                       Copy Blink!
                     </button>
                   </CopyToClipboard>
-                </div>
-              )}
+                </div> 
+              )}*/}
             </div>
           </div>
         </div>

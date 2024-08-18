@@ -97,9 +97,11 @@ export interface Escrow {
   address: PublicKey;
   tokenNameB?: string;
   tokenNameA?: string;
-  deposit?: string;
+  deposit?: number;
   mintB?: PublicKey;
-  mintA?: PublicKey
-  expectedAmountToReceive?: string;
+  mintA?: PublicKey;
+  expectedAmountToReceive?: number;
   isLoading?: boolean;
+  logoA?: string;
+  logoB?: string;
 }

@@ -4,10 +4,13 @@ import OrderCard from "@/app/components/EscrowCard/page";
 import Spinner from "@/app/components/Spinner/Spinner";
 import { containerVariants } from "@/app/constants/variants";
 import { motion } from "framer-motion";
+import { Escrow } from "@/app/interfaces";
 
 const Landing = () => {
   //hooks
   const { data: escrows, error: escrowsError, isLoading } = useEscrows();
+
+  console.log(escrows);
 
   return (
     <main className="flex flex-col scroll-smooth gap-y-10 min-h-screen items-center p-6 bg-transparent pt-[74px] relative overflow-y-auto">
@@ -24,7 +27,7 @@ const Landing = () => {
               Active Escrows
             </p>
             <div className="grid grid-cols-1 ct-lg:grid-cols-2 ct-xl:grid-cols-3 gap-x-10 gap-y-5 w-full mx-auto">
-              {escrows?.map((escrow: any, idx: number) => (
+              {escrows?.map((escrow: Escrow, idx: number) => (
                 <OrderCard key={idx} escrow={escrow} />
               ))}
             </div>

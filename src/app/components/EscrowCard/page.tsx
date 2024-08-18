@@ -11,7 +11,7 @@ import handleWithdraw from "@/app/utils/withdrawEscrow";
 import { toast } from "react-toastify";
 import { useWindowSize } from "@/app/hooks/use-weindowSize";
 import { mutate } from "swr";
-import ShareIcon from "../Icons/shareIcon"
+import ShareIcon from "../Icons/shareIcon";
 import { Escrow } from "@/app/interfaces";
 
 const OrderCard = ({ escrow }: { escrow: Escrow }) => {
@@ -152,6 +152,6 @@ const OrderCard = ({ escrow }: { escrow: Escrow }) => {
       </AnimatePresence>
     </motion.div>
   );
-}
+};
 
 export default OrderCard;

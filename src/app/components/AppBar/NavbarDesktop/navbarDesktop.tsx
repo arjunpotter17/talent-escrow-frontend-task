@@ -3,8 +3,9 @@ import React, { useEffect, useState } from "react";
 import "@solana/wallet-adapter-react-ui/styles.css";
 import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 
-//wallet button on client only
+// Dynamic import for the WalletMultiButton to avoid SSR issues
 const WalletMultiButtonDynamic = dynamic(
   () =>
     import("@solana/wallet-adapter-react-ui").then(
@@ -19,58 +20,65 @@ const NavbarDesktop = (): JSX.Element => {
   const router = useRouter();
   const path = usePathname();
 
+  // Prefetch routes to improve page switching speed
   useEffect(() => {
-    if (path === "/") {
-      setActive("Dashboard");
-    } else if (path === "/about") {
-      setActive("About");
-    } else if (path === "/create") {
-      setActive("Create");
-    }
+    router.prefetch("/");
+    router.prefetch("/about");
+    router.prefetch("/create");
+  }, [router]);
+
+  // Set the active navigation item based on the current path
+  useEffect(() => {
+    const routeMap: Record<string, string> = {
+      "/": "Dashboard",
+      "/about": "About",
+      "/create": "Create",
+    };
+    setActive(routeMap[path] || "Dashboard");
   }, [path]);
 
-  const handleNavigation = (route: string) => {
-    router.push(`${route.toLowerCase()}`);
-  };
-
-  //effect to render multiwallet button
+  // Ensure the WalletMultiButton is only rendered on the client-side
   useEffect(() => {
     setMounted(true);
   }, []);
 
   return (
     <div className="!z-50 w-full justify-between flex items-center absolute py-4 px-10">
-      <p
-        onClick={() => handleNavigation("/")}
-        className="text-toekn-orange text-toekn-banner-header-mobile font-toekn-regular z-10 cursor-pointer"
-      >
-        Toekn.
-      </p>
+      <Link href="/" passHref>
+        <p className="text-toekn-orange text-toekn-banner-header-mobile font-toekn-regular z-10 cursor-pointer">
+          Toekn.
+        </p>
+      </Link>
       <div className="flex items-center justify-center gap-x-10 text-toekn-white font-toekn-regular">
-        <p
-          onClick={() => handleNavigation("/")}
-          className={`cursor-pointer hover:text-toekn-orange ${
-            active === "Dashboard" ? "text-toekn-orange" : "text-toekn-white"
-          }`}
-        >
-          Dashboard
-        </p>
-        <p
-          onClick={() => handleNavigation("/about")}
-          className={`cursor-pointer hover:text-toekn-orange ${
-            active === "About" ? "text-toekn-orange" : "text-toekn-white"
-          }`}
-        >
-          About
-        </p>
-        <p
-          onClick={() => handleNavigation("/create")}
-          className={`cursor-pointer hover:text-toekn-orange ${
-            active === "Create" ? "text-toekn-orange" : "text-toekn-white"
-          }`}
-        >
-          Create Escrow
-        </p>
+        <Link href="/" passHref>
+          <p
+            className={`cursor-pointer hover:text-toekn-orange ${
+              active === "Dashboard"
+                ? "text-toekn-orange"
+                : "text-toekn-white"
+            }`}
+          >
+            Dashboard
+          </p>
+        </Link>
+        <Link href="/about" passHref>
+          <p
+            className={`cursor-pointer hover:text-toekn-orange ${
+              active === "About" ? "text-toekn-orange" : "text-toekn-white"
+            }`}
+          >
+            About
+          </p>
+        </Link>
+        <Link href="/create" passHref>
+          <p
+            className={`cursor-pointer hover:text-toekn-orange ${
+              active === "Create" ? "text-toekn-orange" : "text-toekn-white"
+            }`}
+          >
+            Create Escrow
+          </p>
+        </Link>
         <p
           onClick={() =>
             window.open(

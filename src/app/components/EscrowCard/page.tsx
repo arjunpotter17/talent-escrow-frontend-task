@@ -11,9 +11,10 @@ import handleWithdraw from "@/app/utils/withdrawEscrow";
 import { toast } from "react-toastify";
 import { useWindowSize } from "@/app/hooks/use-weindowSize";
 import { mutate } from "swr";
-import ShareIcon from "../Icons/shareIcon";
+import ShareIcon from "../Icons/shareIcon"
+import { Escrow } from "@/app/interfaces";
 
-export default function OrderCard({ escrow }: { escrow: any }) {
+export default function OrderCard({ escrow }: { escrow: Escrow }) {
   const wallet = useWallet();
   const windowSize = useWindowSize()[0];
   const isMobile = windowSize < 768; // Assuming 768px is the mobile breakpoint

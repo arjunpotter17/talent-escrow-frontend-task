@@ -91,3 +91,15 @@ export interface PopupInterface {
   title: string;
   subTitle: string;
 }
+
+export interface Escrow {
+  maker: PublicKey;
+  address: PublicKey;
+  tokenNameB?: string;
+  tokenNameA?: string;
+  deposit?: string;
+  mintB?: PublicKey;
+  mintA?: PublicKey
+  expectedAmountToReceive?: string;
+  isLoading?: boolean;
+}

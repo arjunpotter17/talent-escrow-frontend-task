@@ -14,7 +14,7 @@ import { mutate } from "swr";
 import ShareIcon from "../Icons/shareIcon";
 import { Escrow } from "@/app/interfaces";
 
-const OrderCard = ({ escrow }: { escrow: Escrow }) => {
+const EscrowCard:React.FC<{ escrow: Escrow }> = ({ escrow }) => {
   const wallet = useWallet();
   const windowSize = useWindowSize()[0];
   const isMobile = windowSize < 768; // Assuming 768px is the mobile breakpoint
@@ -154,4 +154,4 @@ const OrderCard = ({ escrow }: { escrow: Escrow }) => {
   );
 };
 
-export default OrderCard;
+export default EscrowCard;

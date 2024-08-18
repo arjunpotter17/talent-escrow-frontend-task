@@ -1,6 +1,6 @@
 "use client"; //swr throws tantrums
 import { useEscrows } from "../../solana/solana";
-import OrderCard from "@/app/components/EscrowCard/page";
+import OrderCard from "@/app/components/EscrowCard/escrowCard";
 import Spinner from "@/app/components/Spinner/Spinner";
 import { containerVariants } from "@/app/constants/variants";
 import { motion } from "framer-motion";

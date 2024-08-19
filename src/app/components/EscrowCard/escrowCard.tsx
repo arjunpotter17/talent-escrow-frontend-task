@@ -81,7 +81,7 @@ const EscrowCard:React.FC<{ escrow: Escrow }> = ({ escrow }) => {
         </div>
       )}
       {!escrow.isLoading && (
-        <p className="py-2 text-[20px] font-toekn-semibold text-toekn-white w-full overflow-x-scroll text-nowrap">
+        <p className="py-2 text-[20px] font-toekn-semibold text-toekn-white w-full overflow-x-scroll scrollbar-none text-nowrap">
           {escrow.tokenNameB} for {escrow.tokenNameA}
         </p>
       )}

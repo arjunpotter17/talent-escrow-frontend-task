@@ -10,10 +10,8 @@ const Landing = () => {
   //hooks
   const { data: escrows, error: escrowsError, isLoading } = useEscrows();
 
-  console.log(escrows);
-
   return (
-    <main className="flex flex-col scroll-smooth gap-y-10 min-h-screen items-center p-6 bg-transparent pt-[74px] relative overflow-y-auto">
+    <main className="flex flex-col scroll-smooth gap-y-10 min-h-screen items-center p-6 bg-transparent pt-[74px] relative overflow-y-auto scrollbar-none">
       <div className="flex w-full h-full flex-wrap gap-x-4 gap-y-4 max-w-6xl mt-10">
         {escrows ? (
           <motion.div

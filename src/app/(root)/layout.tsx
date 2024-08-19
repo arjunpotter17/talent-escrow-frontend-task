@@ -38,7 +38,7 @@ export default function RootLayout({
               pauseOnHover
               theme="light"
             />
-            <div className="relative !bg-black !overflow-y-auto scroll-smooth">
+            <div className="relative !bg-black !overflow-y-auto scroll-smooth scrollbar-thin scrollbar-track-toekn-black scrollbar-thumb-toekn-popup-bg">
               <Navbar />
               {children}
             </div>
